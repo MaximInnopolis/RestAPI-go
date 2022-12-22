@@ -3,24 +3,19 @@ package main
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
 	"log"
 	"net/http"
-)
 
-type User struct {
-	Name      string `json:"name"`
-	Surname   string `json:"surname"`
-	Login     string `json:"login"`
-	Password  string `json:"password"`
-	BirthDate string `json:"birth_date"`
-}
+	"RestAPI-go/model"
+)
 
 func mainAdmin(c echo.Context) error {
 	return c.String(http.StatusOK, "Hello, admin! You are on the admin main page")
 }
 
 func addUser(c echo.Context) error {
-	user := User{}
+	user := model.User{}
 
 	err := c.Bind(&user)
 	if err != nil {
