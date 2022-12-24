@@ -115,7 +115,7 @@ func login(c echo.Context) error {
 
 func main() {
 
-	_ = storage.DBConn()
+	storage.DBConn()
 
 	// Echo instance
 	e := echo.New()
@@ -130,7 +130,7 @@ func main() {
 
 		db.Where("key = ?", key).Last(&k)
 
-		log.Printf("key %v, string key %v", k, key)
+		log.Printf("key %v", k)
 
 		if k.Key == "" {
 			return false, c.String(http.StatusNotFound, "Not found")
