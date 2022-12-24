@@ -37,7 +37,7 @@ func readUser(c echo.Context) error {
 
 	storage.GetDBInstance().First(&user, id)
 
-	log.Printf("user %v", user)
+	log.Printf("user %v, id %v", user, id)
 
 	if user.ID == 0 {
 		return c.String(http.StatusNotFound, "Not found")
@@ -125,7 +125,18 @@ func main() {
 	e.Use(middleware.Recover())
 
 	e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
-		return key == "valid-key", nil
+		k := models.Key{}
+		db := storage.GetDBInstance()
+
+		db.Where("key = ?", key).Last(&k)
+
+		log.Printf("key %v, string key %v", k, key)
+
+		if k.Key == "" {
+			return false, c.String(http.StatusNotFound, "Not found")
+		}
+
+		return true, nil
 	}))
 
 	// Routes
