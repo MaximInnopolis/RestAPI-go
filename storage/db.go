@@ -1,14 +1,14 @@
 package storage
 
 import (
+	"RestAPI-go/models"
 	"fmt"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"log"
 	"os"
-
-	"gorm.io/gorm"
 )
 
 var DB *gorm.DB
@@ -42,6 +42,12 @@ func DBConn() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
+
+	err = DB.AutoMigrate(models.User{}, models.Key{})
+	if err != nil {
+		return nil
+	}
+
 	return DB
 }
 
