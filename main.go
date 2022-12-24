@@ -3,25 +3,21 @@ package main
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"log"
 
+	"log"
 	"net/http"
 
 	"RestAPI-go/models"
 	"RestAPI-go/storage"
 )
 
-func mainAdmin(c echo.Context) error {
-	return c.String(http.StatusOK, "Hello, admin! You are on the admin main page")
-}
-
-func addUser(c echo.Context) error {
+func createUser(c echo.Context) error {
 	user := models.User{}
 	db := storage.GetDBInstance()
 
 	err := c.Bind(&user)
 	if err != nil {
-		log.Printf("Failed processing addUser request: %s", err)
+		log.Printf("Failed processing createUser request: %s", err)
 		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
 
@@ -122,6 +118,34 @@ func login(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, key, "  ")
 }
 
+func supremeAccess(key string, c echo.Context) (bool, error) {
+	k := models.Key{}
+	db := storage.GetDBInstance()
+
+	db.Where("key = ?", key).Last(&k)
+
+	log.Printf("key %v", k)
+
+	if k.Key == "" {
+
+		log.Println("Key not found")
+
+		return false, c.String(http.StatusNotFound, "Not found")
+	}
+
+	user := models.User{}
+	db.First(&user, k.UserID)
+
+	log.Printf("user %v", user)
+
+	if user.Status == "BLOCKED" || user.Role == "READER" {
+		log.Println("Unable to process operation")
+		return false, c.String(http.StatusForbidden, "Forbidden")
+	}
+
+	return true, nil
+}
+
 func main() {
 
 	storage.DBConn()
@@ -133,7 +157,11 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
+	// Routes
+
+	e.POST("/login", login)
+
+	e.GET("/user/:id", readUser, middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
 		k := models.Key{}
 		db := storage.GetDBInstance()
 
@@ -148,19 +176,22 @@ func main() {
 			return false, c.String(http.StatusNotFound, "Not found")
 		}
 
+		user := models.User{}
+		db.First(&user, k.UserID)
+
+		log.Printf("user %v", user)
+
+		if user.Status == "BLOCKED" {
+			log.Println("Unable to read")
+			return false, c.String(http.StatusForbidden, "Forbidden")
+		}
+
 		return true, nil
 	}))
 
-	// Routes
-
-	e.POST("/login", login)
-
-	e.GET("/main", mainAdmin)
-
-	e.GET("/user/:id", readUser)
-	e.POST("/user", addUser)
-	e.DELETE("/user/:id", deleteUser)
-	e.PUT("/user/:id", updateUser)
+	e.POST("/user", createUser, middleware.KeyAuth(supremeAccess))
+	e.DELETE("/user/:id", deleteUser, middleware.KeyAuth(supremeAccess))
+	e.PUT("/user/:id", updateUser, middleware.KeyAuth(supremeAccess))
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))
