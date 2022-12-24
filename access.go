@@ -29,7 +29,7 @@ func basicAccess(key string, c echo.Context) (bool, error) {
 
 	log.Printf("user %v", user)
 
-	if user.Status == "BLOCKED" {
+	if user.Status != "ACTIVE" {
 		log.Println("Unable to read")
 		return false, c.String(http.StatusForbidden, "Forbidden")
 	}
@@ -57,7 +57,7 @@ func supremeAccess(key string, c echo.Context) (bool, error) {
 
 	log.Printf("user %v", user)
 
-	if user.Status == "BLOCKED" || user.Role == "READER" {
+	if user.Status != "ACTIVE" && user.Role != "ADMIN" {
 		log.Println("Unable to process operation")
 		return false, c.String(http.StatusForbidden, "Forbidden")
 	}
