@@ -1,5 +1,7 @@
 package models
 
+import "github.com/google/uuid"
+
 type Key struct {
 	ID     int64  `json:"id"`
 	Key    string `json:"key"`
@@ -7,8 +9,9 @@ type Key struct {
 }
 
 func GenerateKey(id int) Key {
+
 	return Key{
-		Key:    "string",
+		Key:    uuid.New().String(),
 		UserID: id,
 	}
 }

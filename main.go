@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"log"
@@ -98,9 +97,6 @@ func login(c echo.Context) error {
 	if err := c.Bind(&body); err != nil {
 		return c.NoContent(http.StatusNotFound)
 	}
-	//if err := c.Validate(&body); err != nil {
-	//	return err
-	//}
 
 	user := models.User{}
 
@@ -118,9 +114,6 @@ func login(c echo.Context) error {
 }
 
 func main() {
-	_ = storage.DBConn()
-
-	fmt.Println("Connected to db!")
 
 	// Echo instance
 	e := echo.New()
