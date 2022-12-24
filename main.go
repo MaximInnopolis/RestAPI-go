@@ -115,10 +115,10 @@ func login(c echo.Context) error {
 
 func main() {
 
+	_ = storage.DBConn()
+
 	// Echo instance
 	e := echo.New()
-
-	//g := e.Group("/admin")
 
 	// Middlewares
 	e.Use(middleware.Logger())
