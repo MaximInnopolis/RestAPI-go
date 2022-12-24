@@ -1,11 +1,11 @@
-package model
+package models
 
 import (
 	"RestAPI-go/utils"
 )
 
 type User struct {
-	ID        int64          `json:"id"`
+	ID        int            `json:"id"`
 	Name      string         `json:"name"`
 	Surname   string         `json:"surname"`
 	Login     string         `json:"login"`

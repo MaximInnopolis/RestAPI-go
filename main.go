@@ -8,7 +8,7 @@ import (
 
 	"net/http"
 
-	"RestAPI-go/model"
+	"RestAPI-go/models"
 	"RestAPI-go/storage"
 )
 
@@ -17,7 +17,7 @@ func mainAdmin(c echo.Context) error {
 }
 
 func addUser(c echo.Context) error {
-	user := model.User{}
+	user := models.User{}
 
 	err := c.Bind(&user)
 	if err != nil {
@@ -27,16 +27,18 @@ func addUser(c echo.Context) error {
 
 	log.Printf("User added: %#v", user)
 
-	_ = storage.GetDBInstance().Create(&user)
+	storage.GetDBInstance().Create(&user)
 
 	return c.JSONPretty(http.StatusOK, user, "  ")
 }
 
 func readUser(c echo.Context) error {
-	user := model.User{}
+	user := models.User{}
 	id := c.Param("id")
 
 	storage.GetDBInstance().First(&user, id)
+
+	log.Printf("user %v", user)
 
 	if user.ID == 0 {
 		return c.String(http.StatusNotFound, "Not found")
@@ -46,7 +48,7 @@ func readUser(c echo.Context) error {
 }
 
 func deleteUser(c echo.Context) error {
-	user := model.User{}
+	user := models.User{}
 	id := c.Param("id")
 	db := storage.GetDBInstance()
 
@@ -62,7 +64,7 @@ func deleteUser(c echo.Context) error {
 }
 
 func updateUser(c echo.Context) error {
-	user := model.User{}
+	user := models.User{}
 	id := c.Param("id")
 	db := storage.GetDBInstance()
 
@@ -83,6 +85,38 @@ func updateUser(c echo.Context) error {
 	return c.String(http.StatusOK, "user with id "+id+" successfully updated")
 }
 
+func login(c echo.Context) error {
+	db := storage.GetDBInstance()
+
+	type RequestBody struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	var body RequestBody
+
+	if err := c.Bind(&body); err != nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+	//if err := c.Validate(&body); err != nil {
+	//	return err
+	//}
+
+	user := models.User{}
+
+	if err := db.Where("login = ?", body.Username).First(&user).Error; err != nil {
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	if user.Password != body.Password {
+		return c.NoContent(http.StatusForbidden)
+	}
+
+	key := models.GenerateKey(user.ID)
+	db.Create(&key)
+	return c.JSONPretty(http.StatusOK, key, "  ")
+}
+
 func main() {
 	_ = storage.DBConn()
 
@@ -91,26 +125,26 @@ func main() {
 	// Echo instance
 	e := echo.New()
 
-	g := e.Group("/admin")
+	//g := e.Group("/admin")
 
 	// Middlewares
-	g.Use(middleware.Logger())
-	g.Use(middleware.Recover())
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 
-	g.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
-		if username == "admin" && password == "admin" {
-			return true, nil
-		}
-
-		return false, nil
+	e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
+		return key == "valid-key", nil
 	}))
 
 	// Routes
-	g.GET("/main", mainAdmin)
-	g.GET("/user/:id", readUser)
-	g.POST("/user", addUser)
-	g.DELETE("/user/:id", deleteUser)
-	g.PUT("/user/:id", updateUser)
+
+	e.POST("/login", login)
+
+	e.GET("/main", mainAdmin)
+
+	e.GET("/user/:id", readUser)
+	e.POST("/user", addUser)
+	e.DELETE("/user/:id", deleteUser)
+	e.PUT("/user/:id", updateUser)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))
