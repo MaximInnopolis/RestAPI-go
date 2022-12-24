@@ -17,6 +17,7 @@ func mainAdmin(c echo.Context) error {
 
 func addUser(c echo.Context) error {
 	user := models.User{}
+	db := storage.GetDBInstance()
 
 	err := c.Bind(&user)
 	if err != nil {
@@ -24,9 +25,9 @@ func addUser(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
 
-	log.Printf("User added: %#v", user)
+	log.Printf("User added: %v", user)
 
-	storage.GetDBInstance().Create(&user)
+	db.Create(&user)
 
 	return c.JSONPretty(http.StatusOK, user, "  ")
 }
@@ -34,10 +35,11 @@ func addUser(c echo.Context) error {
 func readUser(c echo.Context) error {
 	user := models.User{}
 	id := c.Param("id")
+	db := storage.GetDBInstance()
 
-	storage.GetDBInstance().First(&user, id)
+	db.First(&user, id)
 
-	log.Printf("user %v, id %v", user, id)
+	log.Printf("User with id %v is readable: %v ", id, user)
 
 	if user.ID == 0 {
 		return c.String(http.StatusNotFound, "Not found")
@@ -58,6 +60,8 @@ func deleteUser(c echo.Context) error {
 	}
 
 	db.Delete(&user)
+
+	log.Printf("User with id %v deleted: %v ", id, user)
 
 	return c.String(http.StatusOK, "")
 }
@@ -80,6 +84,8 @@ func updateUser(c echo.Context) error {
 	}
 
 	db.Save(&user)
+
+	log.Printf("User with id %v saved: %v ", id, user)
 
 	return c.String(http.StatusOK, "user with id "+id+" successfully updated")
 }
@@ -110,6 +116,9 @@ func login(c echo.Context) error {
 
 	key := models.GenerateKey(user.ID)
 	db.Create(&key)
+
+	log.Printf("Key created and saved: %v ", key)
+
 	return c.JSONPretty(http.StatusOK, key, "  ")
 }
 
@@ -133,6 +142,9 @@ func main() {
 		log.Printf("key %v", k)
 
 		if k.Key == "" {
+
+			log.Println("Key not found")
+
 			return false, c.String(http.StatusNotFound, "Not found")
 		}
 
