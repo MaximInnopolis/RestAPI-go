@@ -1,6 +1,7 @@
 package main
 
 import (
+	"RestAPI-go/posts"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
@@ -19,13 +20,12 @@ func main() {
 	e.Use(middleware.Recover())
 
 	// Routes
+	e.POST("/login", posts.Login)
 
-	e.POST("/login", login)
-
-	e.GET("/user/:id", readUser, middleware.KeyAuth(basicAccess))
-	e.POST("/user", createUser, middleware.KeyAuth(supremeAccess))
-	e.DELETE("/user/:id", deleteUser, middleware.KeyAuth(supremeAccess))
-	e.PUT("/user/:id", updateUser, middleware.KeyAuth(supremeAccess))
+	e.GET("/user/:id", posts.ReadUser, middleware.KeyAuth(posts.BasicAccess))
+	e.POST("/user", posts.CreateUser, middleware.KeyAuth(posts.SupremeAccess))
+	e.DELETE("/user/:id", posts.DeleteUser, middleware.KeyAuth(posts.SupremeAccess))
+	e.PUT("/user/:id", posts.UpdateUser, middleware.KeyAuth(posts.SupremeAccess))
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))

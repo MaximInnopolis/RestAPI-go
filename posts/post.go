@@ -1,4 +1,4 @@
-package main
+package posts
 
 import (
 	"RestAPI-go/models"
@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func createUser(c echo.Context) error {
+func CreateUser(c echo.Context) error {
 	user := models.User{}
 	db := storage.GetDBInstance()
 
@@ -26,7 +26,7 @@ func createUser(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, user, "  ")
 }
 
-func readUser(c echo.Context) error {
+func ReadUser(c echo.Context) error {
 	user := models.User{}
 	id := c.Param("id")
 	db := storage.GetDBInstance()
@@ -42,25 +42,7 @@ func readUser(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, user, "  ")
 }
 
-func deleteUser(c echo.Context) error {
-	user := models.User{}
-	id := c.Param("id")
-	db := storage.GetDBInstance()
-
-	db.First(&user, id)
-
-	if user.ID == 0 {
-		return c.String(http.StatusNotFound, "Not found")
-	}
-
-	db.Delete(&user)
-
-	log.Printf("User with id %v deleted: %v ", id, user)
-
-	return c.String(http.StatusOK, "")
-}
-
-func updateUser(c echo.Context) error {
+func UpdateUser(c echo.Context) error {
 	user := models.User{}
 	id := c.Param("id")
 	db := storage.GetDBInstance()
@@ -84,7 +66,25 @@ func updateUser(c echo.Context) error {
 	return c.String(http.StatusOK, "user with id "+id+" successfully updated")
 }
 
-func login(c echo.Context) error {
+func DeleteUser(c echo.Context) error {
+	user := models.User{}
+	id := c.Param("id")
+	db := storage.GetDBInstance()
+
+	db.First(&user, id)
+
+	if user.ID == 0 {
+		return c.String(http.StatusNotFound, "Not found")
+	}
+
+	db.Delete(&user)
+
+	log.Printf("User with id %v deleted: %v ", id, user)
+
+	return c.String(http.StatusOK, "")
+}
+
+func Login(c echo.Context) error {
 	db := storage.GetDBInstance()
 
 	type RequestBody struct {

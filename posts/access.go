@@ -1,4 +1,4 @@
-package main
+package posts
 
 import (
 	"RestAPI-go/models"
@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func basicAccess(key string, c echo.Context) (bool, error) {
+func BasicAccess(key string, c echo.Context) (bool, error) {
 	k := models.Key{}
 	db := storage.GetDBInstance()
 
@@ -37,7 +37,7 @@ func basicAccess(key string, c echo.Context) (bool, error) {
 	return true, nil
 }
 
-func supremeAccess(key string, c echo.Context) (bool, error) {
+func SupremeAccess(key string, c echo.Context) (bool, error) {
 	k := models.Key{}
 	db := storage.GetDBInstance()
 
