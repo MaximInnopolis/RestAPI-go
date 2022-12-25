@@ -23,7 +23,7 @@ RUN go install -v ./...
 RUN go build -o /build
 
 # Expose port 8080 to the outside world
-EXPOSE 8080
+EXPOSE 8080:8080
 
 # Run the executable
 CMD [ "/build" ]
